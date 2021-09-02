@@ -19,6 +19,7 @@ export class ApiWithCdkStack extends cdk.Stack {
       writeCapacity: 2,
       encryption: TableEncryption.AWS_MANAGED
     });
+
     
     const api = new RestApi(this, `${modelName}Api`, {
       restApiName: `${modelName} Service`,
@@ -26,7 +27,6 @@ export class ApiWithCdkStack extends cdk.Stack {
     });
 
     const allResources = api.root.addResource(modelName.toLocaleLowerCase());
-    const oneResource = allResources.addResource('{id}');
 
     const putPolicy = new Policy(this, 'putPolicy', {
       statements: [
@@ -81,7 +81,26 @@ export class ApiWithCdkStack extends cdk.Stack {
       ],
       requestTemplates : {
         'application/json': `
-            $input.path('$.cart'),
+            {
+              "TableName": "${dynamoTable.tableName}",
+              "Item": {
+                "id": {
+                  "S": "$input.path('$.cart.id')"
+                },
+                "firstName": {
+                  "S": "$input.path('$.contact.firstName')"
+                },
+                "lastName": {
+                  "S": "$input.path('$.contact.lastName')"
+                },
+                "email": {
+                  "S": "$input.path('$.contact.email')"
+                },
+                "phone": {
+                  "S": "$input.path('$.contact.phone.number')"
+                }
+              }
+            }
         `
       }
       },
